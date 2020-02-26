@@ -1,3 +1,6 @@
+from __future__ import print_function
+
+import logging
 from shutil import copyfile
 import os
 from os import remove, path
@@ -5,7 +8,7 @@ import sys
 from sys import argv, stdout
 from time import time
 import string
-from string import lowercase
+from string import ascii_lowercase as lowercase
 from collections import Counter, defaultdict
 from itertools import product
 
@@ -18,6 +21,10 @@ from randomtools.uniso import remove_sector_metadata, inject_logical_sectors
 from xml_patch_parser import get_patchdicts
 from xml_patch_patcher import patch_patch
 
+
+FORMAT = '%(filename) %(lineno) %(message)s'
+logging.basicConfig(format=FORMAT)
+LOGGER = logging.getLogger('rcc')
 
 NAMESFILE = path.join(tblpath, "generic_names.txt")
 MESSAGESFILE = path.join(tblpath, "message_pointers.txt")
@@ -39,7 +46,7 @@ def get_patches():
     try:
         f = open("patches.cfg")
     except IOError:
-        print "WARNING: patches.cfg file not found."
+        print("WARNING: patches.cfg file not found.")
         return []
 
     xmlfilenames = defaultdict(set)
@@ -191,22 +198,22 @@ BANNED_RSMS = [0x1BB, 0x1D7, 0x1E1, 0x1E4, 0x1E5, 0x1F1]
 BANNED_ANYTHING = [0x18]
 BANNED_ITEMS = [0x49]
 MP_RESTORE_INNATES = [0x1EE, 0x1B6, 0x1B0]
-LUCAVI_INNATES = (range(0x1A6, 0x1A9) + [0x1AA] + range(0x1AC, 0x1B0)
-                  + range(0x1B1, 0x1B4) + [0x1B5, 0x1BA, 0x1BD, 0x1BE]
-                  + range(0x1C0, 0x1C6)
-                  + range(0x1D1, 0x1D6) + [0x1D8, 0x1DD, 0x1E3]
+LUCAVI_INNATES = (list(range(0x1A6, 0x1A9)) + [0x1AA] + list(range(0x1AC, 0x1B0))
+                  + list(range(0x1B1, 0x1B4)) + [0x1B5, 0x1BA, 0x1BD, 0x1BE]
+                  + list(range(0x1C0, 0x1C6))
+                  + list(range(0x1D1, 0x1D6)) + [0x1D8, 0x1DD, 0x1E3]
                   + [0x1E7, 0x1E8]
-                  + range(0x1EB, 0x1EE) + [0x1F2, 0x1F3, 0x1FA, 0x1FB]
+                  + list(range(0x1EB, 0x1EE)) + [0x1F2, 0x1F3, 0x1FA, 0x1FB]
                   ) + MP_RESTORE_INNATES
 
 
 LUCAVI_JOBS = [0x3C, 0x3E, 0x40, 0x41, 0x43, 0x45, 0x49, 0x97]
 LUCAVI_ORDER = [0x43, 0x3C, 0x3E, 0x45, 0x40, 0x41, 0x97, 0x49]
 BASIC_JOBS = range(0x4A, 0x5E)
-MONSTER_JOBS = range(0x5E, 0x8E) + [0x90, 0x91, 0x96, 0x97, 0x99, 0x9A]
+MONSTER_JOBS = list(range(0x5E, 0x8E)) + [0x90, 0x91, 0x96, 0x97, 0x99, 0x9A]
 STORYLINE_RECRUITABLE_JOBS = [0xD, 0xF, 0x16, 0x1A, 0x1E, 0x1F,
                               0x29, 0x2A, 0x32, 0x90, 0x91]
-USED_MAPS = range(0, 0x14B) + range(0x180, 0x1d6)
+USED_MAPS = list(range(0, 0x14B)) + list(range(0x180, 0x1d6))
 FIXED_WEATHER = [0x19f, 0x1b5, 0x1c2]
 
 jobreq_namedict = {}
@@ -245,7 +252,7 @@ SUPER_LEVEL_BOOSTED = []
 SUPER_SPECIAL = []
 
 
-chartable = enumerate(string.digits + string.uppercase + string.lowercase)
+chartable = enumerate(string.digits + string.ascii_uppercase + string.ascii_lowercase)
 chartable = list(chartable) + [(0xFA, " "), (0xD9, '~'),
                                (0xB6, '.'), (0xC1, "'")]
 chartable += [(v, k) for (k, v) in chartable]
@@ -277,7 +284,7 @@ def set_difficulty_factors(value):
         boostd["random_special_unit"] = 0.5 + (1.0 * value)
         boostd["story_special_unit"] = 0.0 + (1.0 * value)
     except OverflowError:
-        print "Max chaos multiplier exceeded. Using a multiplier of 500."
+        print("Max chaos multiplier exceeded. Using a multiplier of 500.")
         set_difficulty_factors(500.0)
 
 
@@ -312,7 +319,7 @@ def calculate_jp_total(joblevels):
 
 def rewrite_header(filename, message):
     if len(message) > 0x20:
-        print "WARNING: Cannot write full seed info to rom."
+        print("WARNING: Cannot write full seed info to rom.")
         message = message[:0x1F] + "~"
     while len(message) < 0x20:
         message += " "
@@ -926,11 +933,11 @@ class EncounterObject(TableObject):
 
             '''
             if self.entd == 0x193:
-                    print MapObject.get_map(self.map_id).get_pretty_values_grid("height")
+                    print(MapObject.get_map(self.map_id).get_pretty_values_grid("height")
                     print
-                    print "%x %x" % (x, y), "%s/%s" % (subchars, numvalid)
+                    print("%x %x" % (x, y), "%s/%s" % (subchars, numvalid)
                     for row in window:
-                        print " ".join([str(v) for v in row])
+                        print(" ".join([str(v) for v in row])
                     print
                     import pdb; pdb.set_trace()
             '''
@@ -2044,6 +2051,9 @@ class JobObject(TableObject):
 
 
 class UnitObject(TableObject):
+    def __hash__(self):
+        return hash(repr(self))
+
     @property
     def map_id(self):
         return self.index >> 4
@@ -2454,7 +2464,7 @@ class UnitObject(TableObject):
 
         generic_r, monster_r, other_r = mapsprite_restrictions[self.map_id]
         selection = sorted(mapsprite_selection[self.map_id],
-                           key=lambda (j, g): (j.index, g))
+                           key=lambda j, g: (j.index, g))
         done_jobs = [j for (j, g) in selection]
         male_sel = [(j, g) for (j, g) in selection if g == "male"]
         female_sel = [(j, g) for (j, g) in selection if g == "female"]
@@ -2528,7 +2538,7 @@ class UnitObject(TableObject):
                     cands = female_sel
 
                 if not cands:
-                    print "WARNING: Named unit can't keep their gender."
+                    print("WARNING: Named unit can't keep their gender.")
                     base_job, gender = random.choice(selection)
                     import pdb; pdb.set_trace()
                 else:
@@ -2549,7 +2559,7 @@ class UnitObject(TableObject):
         try:
             assert (len(mapsprite_selection[self.map_id]) <= generic_r)
         except Exception:
-            print "ERROR: Sprite limit."
+            print("ERROR: Sprite limit.")
             import pdb; pdb.set_trace()
 
         if not self.has_special_graphic:
@@ -2970,7 +2980,7 @@ def make_rankings():
     if rankdict is not None:
         return dict(rankdict)
 
-    print "Analyzing and ranking unit data."
+    print("Analyzing and ranking unit data.")
     units = get_units()
     units = [u for u in units if u.graphic != 0]
     banned_jobs = [j.index for j in JobObject.every
@@ -3261,6 +3271,7 @@ def sort_mapunits():
         mapunits[u.map_id].add(u)
     for map_id in mapunits.keys():
         mapunits[map_id] = sorted(mapunits[map_id], key=lambda u: u.index)
+        print([m for m in mapsprites[map_id]])
         mapsprites[map_id] = sorted(mapsprites[map_id], key=lambda u: u.index)
 
 
@@ -3306,7 +3317,7 @@ def mutate_job_level(filename):
 
 
 def mutate_job_requirements():
-    print "Randomizing job requirements."
+    print("Randomizing job requirements.")
     for index in [0x7a, 0x7d]:
         # don't let gariland ninjas throw shurikens and balls
         i = ItemObject.get(index)
@@ -3454,7 +3465,7 @@ def mutate_job_requirements():
 
 
 def mutate_job_stats():
-    print "Mutating job stats."
+    print("Mutating job stats.")
     jobs = get_jobs_kind("human")
     for j in jobs:
         j.mutate_stats()
@@ -3512,7 +3523,7 @@ def mutate_job_stats():
 
 
 def mutate_job_innates():
-    print "Mutating job innate features."
+    print("Mutating job innate features.")
     jobs = get_jobs_kind("human")
     for j in jobs:
         j.mutate_innate()
@@ -3522,7 +3533,7 @@ def mutate_skillsets():
     global MUTATED_SKILLSETS
     MUTATED_SKILLSETS = True
 
-    print "Shuffling job skillsets."
+    print("Shuffling job skillsets.")
     skillsets = get_skillsets()
     skillsets = [s for s in skillsets if s.has_learnable_actions
                  and s.index not in BANNED_SKILLSET_SHUFFLE]
@@ -3651,7 +3662,7 @@ def mutate_skillsets():
 
 # Ry Edit: Mutate functions for Inflict Status and Weapon/Item Stats
 def mutate_inflict_status():
-    print "Mutating weapon and ability status effects."
+    print("Mutating weapon and ability status effects.")
     inflict_statuses = InflictStatusObject.every
     for infst in inflict_statuses:
         infst.randomize_empty()
@@ -3683,7 +3694,7 @@ def mutate_items_and_weapons():
 
 
 def mutate_abilities_attributes():
-    print "Mutating ability attributes."
+    print("Mutating ability attributes.")
     abilities_attributes = get_abilities_attributes()
     for aa in abilities_attributes:
         aa.mutate()
@@ -3734,12 +3745,12 @@ def mutate_abilities_attributes():
 
 
 def mutate_monsters():
-    print "Mutating monsters."
+    print("Mutating monsters.")
     jobs = get_jobs_kind("monster")
     for j in jobs:
         j.mutate_stats()
         j.mutate_innate()
-    print "Mutating monster skills."
+    print("Mutating monster skills.")
     for ms in get_monster_skills():
         ms.mutate()
 
@@ -3775,7 +3786,7 @@ def mutate_units():
 
     make_rankings()
 
-    print "Mutating unit data."
+    print("Mutating unit data.")
     map_ids = sorted(named_units, key=lambda m: len(named_units[m]))
     map_ids = reversed(map_ids)
     for m in map_ids:
@@ -3806,7 +3817,7 @@ def mutate_units():
 
 
 def mutate_units_special():
-    print "Adding special surprises."
+    print("Adding special surprises.")
     generate_balmafula()
     ranked_jobs = get_ranked("job")
     special_jobs = [j for j in get_jobs() if not 5 <= j.skillset <= 0x18
@@ -4490,7 +4501,7 @@ def restore_warjilis(outfile, before=0xAB, new_entd=0x1DC,
 
 
 def mutate_treasure():
-    print "Mutating treasure."
+    print("Mutating treasure.")
     units = get_units()
     for u in units:
         u.mutate_trophy()
@@ -4505,7 +4516,7 @@ def mutate_treasure():
 
 
 def mutate_shops():
-    print "Mutating shop item availability."
+    print("Mutating shop item availability.")
     items = get_items()
     for i in items:
         i.mutate_shop()
@@ -4805,8 +4816,8 @@ def generate_balmafula():
 
 def randomize():
     global JAPANESE_MODE, JOBLEVEL_JP
-    print ('You are using the FFT RUMBLE CHAOS CRASHDOWN randomizer '
-           'version "%s".' % VERSION)
+    print(('You are using the FFT RUMBLE CHAOS CRASHDOWN randomizer '
+           'version "%s".' % VERSION))
 
     flags, seed = None, None
     if len(argv) >= 2:
@@ -4824,13 +4835,12 @@ def randomize():
                     JAPANESE_MODE = True
 
     if len(argv) <= 2:
-        print ("NOTICE: This randomizer requires 1 GB of free space "
-               "to create a new rom file.\n")
+        print(("NOTICE: This randomizer requires 1 GB of free space "
+               "to create a new rom file.\n"))
         if len(argv) <= 1:
-            print ("Include the filename extension when entering the filename "
-                   "of your Final Fantasy Tactics iso.")
-            sourcefile = raw_input("Filename? ").strip()
-            print
+            print(("Include the filename extension when entering the filename "
+                   "of your Final Fantasy Tactics iso."))
+            sourcefile = input("Filename? ").strip()
 
     srchash = get_md5_hash(sourcefile)
     stats = os.stat(sourcefile)
@@ -4843,16 +4853,16 @@ def randomize():
         filesize = min(ISO_SIZES + RAW_SIZES,
                        key=lambda s: abs(s-filesize))
     if srchash not in JPMD5HASHES + MD5HASHES + RAWMD5HASHES:
-        print "WARNING! The file you provided has the following md5 hash: "
-        print srchash
-        print "\nThis is not a known hash value. See the README."
-        resp = raw_input("Continuing might have unexpected results. "
+        print("WARNING! The file you provided has the following md5 hash: ")
+        print(srchash)
+        print("\nThis is not a known hash value. See the README.")
+        resp = input("Continuing might have unexpected results. "
                          "Proceed? (y/n) ")
         if resp and resp[0].lower() == 'y':
             pass
         else:
             sys.exit(0)
-        resp = raw_input("\nTreat this rom as the Japanese version? (y/n) ")
+        resp = input("\nTreat this rom as the Japanese version? (y/n) ")
         if resp and resp[0].lower() == 'y':
             JAPANESE_MODE = True
 
@@ -4862,7 +4872,7 @@ def randomize():
         difficulty = 1.0
 
     if len(argv) <= 2:
-        print ("u  Randomize enemy and ally units.\n"
+        print(("u  Randomize enemy and ally units.\n"
                "f  Randomize enemy and ally formations.\n"
                "j  Randomize job stats and JP required for skills.\n"
                "i  Randomize innate properties of jobs.\n"
@@ -4876,16 +4886,15 @@ def randomize():
                "m  Randomize monster stats and skills.\n"
                "c  Randomize battle music.\n"
                "z  Enable special surprises.\n"
-               "o  Enable autoplay cutscenes.\n")
-        flags = raw_input("Flags? (blank for all) ").strip()
-        seed = raw_input("Seed? (blank for random) ").strip()
-        print "\nYou can adjust the difficulty of this randomizer."
-        difficulty = raw_input("CHAOS MULTIPLIER? (default: 1.0) ").strip()
+               "o  Enable autoplay cutscenes.\n"))
+        flags = input("Flags? (blank for all) ").strip()
+        seed = input("Seed? (blank for random) ").strip()
+        print("\nYou can adjust the difficulty of this randomizer.")
+        difficulty = input("CHAOS MULTIPLIER? (default: 1.0) ").strip()
         if difficulty:
             difficulty = float(difficulty)
         else:
             difficulty = 1.0
-        print
 
     set_difficulty_factors(difficulty)
 
@@ -4895,7 +4904,7 @@ def randomize():
         seed = int(time())
     seed = seed % (10**10)
     random.seed(seed)
-    print "Using seed: %s.%s\n" % (flags, seed)
+    print("Using seed: %s.%s\n" % (flags, seed))
     if flags:
         newsource = "fft_rcc.%s.%s.iso" % (flags, seed)
     else:
@@ -4911,15 +4920,19 @@ def randomize():
     for key in secret_codes.keys():
         if key in flags:
             flags = flags.replace(key, '')
-            print "SECRET CODE: %s ACTIVATED" % secret_codes[key]
+            print("SECRET CODE: %s ACTIVATED" % secret_codes[key])
             activated_codes.add(key)
 
     if not flags:
         flags = lowercase
 
     patches = get_patches()
-    print "COPYING ROM IMAGE"
-    copyfile(sourcefile, newsource)
+    print("COPYING ROM IMAGE")
+    try:
+        copyfile(sourcefile, newsource)
+    except OSError:
+        print("Drive seems to be full or directory is not writeable.")
+        raise
     sourcefile = newsource
 
     assert filesize in ISO_SIZES + RAW_SIZES
@@ -4942,11 +4955,12 @@ def randomize():
         set_table_specs("tables_list.txt")
         JOBLEVEL_JP = [100, 200, 350, 550, 800, 1150, 1550, 2100]
 
-    print "Reading game data."
+    print("Reading game data.")
     all_objects = [g for g in globals().values()
                    if isinstance(g, type) and issubclass(g, TableObject)
                    and g is not TableObject]
     for ao in all_objects:
+        print(f'Processing {ao}')
         ao.every
 
     get_jobreqs()
@@ -5032,7 +5046,7 @@ def randomize():
             e.mutate_map()
 
     if 'f' in flags:
-        print "Randomizing formations."
+        print("Randomizing formations.")
         random.seed(seed)
         fs = [f for f in FormationObject.every
               if f.bitmap and f.num_characters]
@@ -5067,7 +5081,7 @@ def randomize():
 
     if 'c' in flags:
         random.seed(seed)
-        print "Randomizing music."
+        print("Randomizing music.")
         for e in EncounterObject.every:
             e.randomize_music()
 
@@ -5127,9 +5141,9 @@ def randomize():
             if u.get_bit("enemy_team"):
                 u.level = 1
 
-    print "WRITING MUTATED DATA"
+    print("WRITING MUTATED DATA")
     for ao in all_objects:
-        print "Writing %s data." % ao.__name__
+        print("Writing %s data." % ao.__name__)
         for obj in ao.every:
             obj.write_data()
 
@@ -5155,10 +5169,10 @@ def randomize():
         f = open(TEMPFILE, 'w')
         f.truncate(0)
         f.close()
-    print "Output file has hash: %s" % get_md5_hash(sourcefile)
+    print("Output file has hash: %s" % get_md5_hash(sourcefile))
 
     if len(argv) <= 2:
-        raw_input("\nRandomization completed successfully. "
+        input("\nRandomization completed successfully. "
                   "\nOutput filename: %s"
                   "\nPress enter to close this program. " % sourcefile)
 
@@ -5168,6 +5182,7 @@ if __name__ == "__main__":
     else:
         try:
             randomize()
-        except Exception, e:
-            print "ERROR: %s %s" % (e.__class__.__name__, e)
-            raw_input("Press enter to quit. ")
+        except Exception as e:
+            LOGGER.exception("Exiting due to Python exception.")
+            print("ERROR: %s %s" % (e.__class__.__name__, e))
+            input("Press enter to quit.")

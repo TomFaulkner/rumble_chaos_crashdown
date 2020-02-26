@@ -24,11 +24,12 @@ def patch_patch(filename, patchdict, verify=False, compare_offsets=False):
         varvals = patchdict['varvals']
 
     if not (verify or compare_offsets):
-        print "APPLYING PATCH: %s" % patchdict['name']
+        print("APPLYING PATCH: %s" % patchdict['name'])
     elif verify:
-        print "VERIFYING PATCH: %s" % patchdict['name']
+        print("VERIFYING PATCH: %s" % patchdict['name'])
 
     for location in patchdict['locations'] + patchdict['variables']:
+        from pprint import pprint; pprint(location)
         binfile = location['file']
         bin_offset = bin_offsets[binfile]
         offset = location['offset'] + bin_offset
@@ -46,14 +47,14 @@ def patch_patch(filename, patchdict, verify=False, compare_offsets=False):
                 raise Exception("No value given for variable: %s %s" %
                                 (patchdict['name'], location['name']))
             if not (verify or compare_offsets):
-                print '-- VARIABLE:', location['name'], value
-            to_write = ''
+                print('-- VARIABLE:', location['name'], value)
+            to_write = b''
             while len(to_write) < length:
-                to_write = chr(value & 0xff) + to_write
+                to_write = chr(value & 0xff).encode() + to_write
                 value >>= 8
             assert len(to_write) == length
         else:
-            to_write = location['data']
+            to_write = location['data'].encode()
             length = len(to_write)
 
         to_patch = open(filename, 'r+b')
@@ -62,13 +63,13 @@ def patch_patch(filename, patchdict, verify=False, compare_offsets=False):
         if compare_offsets:
             compare_filename = alt_filenames[binfile]
             compare_filename = path.join('sandbox', compare_filename)
-            print filename, hex(offset)
-            print compare_filename, hex(location['offset'])
+            print(filename, hex(offset))
+            print(compare_filename, hex(location['offset']))
             to_compare = open(compare_filename, 'r+b')
             to_compare.seek(location['offset'])
             patch_data = to_patch.read(length)
             compare_data = to_compare.read(length)
-            print patch_data == compare_data
+            print(patch_data == compare_data)
             assert patch_data == compare_data
             to_compare.close()
 

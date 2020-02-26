@@ -76,5 +76,5 @@ if __name__ == '__main__':
     for filename in argv[1:]:
         patchdicts = get_patchdicts(filename)
         for p in patchdicts:
-            print path.split(filename)[-1], p['name']
+            print(path.split(filename)[-1], p['name'])
             patch_patch('unheadered_na.img', p, compare_offsets=True)
