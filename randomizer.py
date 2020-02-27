@@ -5027,7 +5027,9 @@ def randomize():
         print "JP Cost multiplier (0.1 to 3.0): (default 1.0)"
         print "r for random (0.5-2.0), h for high (1.1-2.0), l for low (.2-.9)"
         jp_cost_multiplier = raw_input().strip()
-        if jp_cost_multiplier.lower() in ('rhl'):
+        if not jp_cost_multiplier:
+            jp_cost_multiplier = 1.0
+        elif jp_cost_multiplier.lower() in 'rhl':
             jp_random_range = {
                 'r': (5, 20),
                 'h': (11, 20),
