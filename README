@@ -6,7 +6,8 @@ Contact:    https://twitter.com/abyssonym
 
 --- HOW TO USE ---
 Running the randomizer:
-    Windows users may use the executable file, "fft_rcc.exe". Other users, please run "randomizer.py" using Python version 2.7.
+    ~~Windows users may use the executable file, "fft_rcc.exe". Other users, please run "randomizer.py" using Python version 2.7.~~
+    Windows users would be advised to install Python 2.7 or run this is WSL. The exe file was behind the python script, and there is no remnant of a build process in the repo. In the future I might include an automated build process.
 
     Command line arguments:
         python randomizer.py <ISO_FILENAME> <FLAGS>.<SEED> <CHAOS MULTIPLIER>
@@ -45,6 +46,9 @@ Seed value:
 
 Chaos multiplier:
     This is a difficulty setting for RCC. It mainly affects enemy stats and the level of treasure you acquire. The standard difficulty is 1.0, with 0.5 being quite easy and 1.5 being quite hard. Difficulty scales quadratically with the chaos multiplier, so don't raise it too high!
+
+JP Cost Multplier:
+   This can make farming less of an issue, or add pain and suffering if you want a really high JP cost. Or, let the randomizer choose how much farming you have to do. The range is 0.1 to 3.0.
 
 Output files:
     The randomizer will output a new, randomized ISO with the seed in the filename. If you choose to randomize job requirements, it will also output a text file with the new job requirements inside.
