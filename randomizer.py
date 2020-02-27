@@ -5017,8 +5017,10 @@ def randomize():
         flags = raw_input("Flags? (blank for all) ").strip()
         seed = raw_input("Seed? (blank for random) ").strip()
         print "\nYou can adjust the difficulty of this randomizer."
-        difficulty = raw_input("CHAOS MULTIPLIER? (default: 1.0) ").strip()
-        if difficulty:
+        difficulty = raw_input("CHAOS MULTIPLIER? (default: 1.0) (r for random .8-1.5) ").strip()
+        if difficulty.lower() == 'r':
+            difficulty = random.randint(80, 150) / 100.0
+        elif difficulty:
             difficulty = float(difficulty)
         else:
             difficulty = 1.0
