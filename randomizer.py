@@ -5039,6 +5039,7 @@ def randomize():
     secret_codes = {}
     secret_codes['fiesta'] = "JOB FIESTA MODE"
     secret_codes['easymodo'] = "EASY MODE"
+    secret_codes['unlockjobs'] = "UNLOCK JOBS"
     activated_codes = set([])
     for key in secret_codes.keys():
         if key in flags:
@@ -5274,13 +5275,15 @@ def randomize():
                 if not u.has_special_graphic:
                     u.job = 0x1c  # delita's sis
 
+    if "unlockjobs" in activated_codes:
+        unlock_jobs(TEMPFILE)
+
     print "WRITING MUTATED DATA"
     for ao in all_objects:
         print "Writing %s data." % ao.__name__
         for obj in ao.every:
             obj.write_data()
 
-    #unlock_jobs(TEMPFILE)
     diffstr = str(difficulty)
     if len(diffstr) > 10:
         diffstr = diffstr[:9] + "?"
