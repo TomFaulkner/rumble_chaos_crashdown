@@ -1534,10 +1534,13 @@ class ItemObject(TableObject):
             return True
 
     def mutate_shop(self):
+        # pricing
         self.price = mutate_normal(self.price, minimum=0, maximum=65000)
         self.price = int(round(self.price, -1))
         if self.price > 500:
             self.price = int(round(self.price, -2))
+
+        # availability
         if 1 <= self.time_available <= 16:
             self.time_available = mutate_normal(self.time_available,
                                                 minimum=1, maximum=16)
@@ -3526,7 +3529,8 @@ def mutate_job_requirements():
                 allpool.add(req)
 
 
-def mutate_job_stats():
+def mutate_job_stats(jp_cost_multiplier=1.0):
+    assert 0.1 < jp_cost_multiplier < 3.0, 'invalid jp_cost_multiplier'
     print "Mutating job stats."
     jobs = get_jobs_kind("human")
     for j in jobs:
@@ -3558,6 +3562,7 @@ def mutate_job_stats():
                     a.jp_cost = int(round(a.jp_cost*2, -2) / 2)
                 else:
                     a.jp_cost = int(round(a.jp_cost, -1))
+                a.jp_cost = int(round(a.jp_cost * jp_cost_multiplier, -1))
 
                 if num_abilities == 1:
                     a.learn_chance = 100
@@ -5019,6 +5024,26 @@ def randomize():
             difficulty = 1.0
         print
 
+        print "JP Cost multiplier (0.1 to 3.0): (default 1.0)"
+        print "r for random (0.5-2.0), h for high (1.1-2.0), l for low (.2-.9)"
+        jp_cost_multiplier = raw_input().strip()
+        if jp_cost_multiplier.lower() in ('rhl'):
+            jp_random_range = {
+                'r': (5, 20),
+                'h': (11, 20),
+                'l': (2, 9)
+            }[jp_cost_multiplier.lower()]
+            jp_cost_multiplier = random.randint(*jp_random_range) / 10.0
+        elif jp_cost_multiplier:
+            try:
+                jp_cost_multiplier = float(jp_cost_multiplier)
+                jp_cost_multiplier = min(jp_cost_multiplier, 3.0)
+                jp_cost_multiplier = max(jp_cost_multiplier, 0.1)
+            except ValueError:
+                print "Couldn't use JP cost multiplier, using 1.0."
+                jp_cost_multiplier = 1.0
+        print "Using %s as JP cost multiplier." % jp_cost_multiplier
+
     set_difficulty_factors(difficulty)
 
     if seed:
@@ -5123,27 +5148,27 @@ def randomize():
         random.seed(seed)
         mutate_inflict_status()
 
-    if 'j' in flags:
+    if 'j' in flags:  # job stats and jp
         # do after randomizing skillsets
         random.seed(seed)
-        mutate_job_stats()
+        mutate_job_stats(jp_cost_multiplier)
 
         s = get_profiles_str()
         f = open(logfile, "a+")
         f.write(s + "\n\n")
         f.close()
 
-    if 'm' in flags:
+    if 'm' in flags:  # monster stats and skills
         # before units
         random.seed(seed)
         mutate_monsters()
 
-    if 'u' in flags:
+    if 'u' in flags:  # randomize enemy and ally units
         # do after randomizing skillsets
         random.seed(seed)
         mutate_units()
 
-    if 'z' in flags:
+    if 'z' in flags:  # surprises
         # do after randomizing skillsets
         random.seed(seed)
         mutate_units_special()
@@ -5158,12 +5183,16 @@ def randomize():
         for e in EncounterObject.every:
             e.randomize_weather()
 
+<<<<<<< HEAD
     try:
         randomize_overworld(TEMPFILE)
     except NotImplementedError:
         print "Warning: Overworld mod failed."
 
     if 'z' in flags and 'f' in flags:
+=======
+    if 'z' in flags and 'f' in flags:  # surprises + enemy & ally formations
+>>>>>>> add a jp multiplier
         random.seed(seed)
         encs = EncounterObject.get_replaceable_maps()
         sampsize = len(encs) / 2
@@ -5191,7 +5220,7 @@ def randomize():
                     break
         randomize_enemy_formations()
 
-    if 't' in flags:
+    if 't' in flags:  # trophy, poach, move-find items
         random.seed(seed)
         mutate_treasure()
 
@@ -5200,7 +5229,7 @@ def randomize():
         f.write(s + "\n\n")
         f.close()
 
-    if 'p' in flags:
+    if 'p' in flags:  # item prices and shop availability
         random.seed(seed)
         mutate_shops()
 
