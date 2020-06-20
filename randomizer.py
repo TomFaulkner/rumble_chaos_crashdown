@@ -5187,16 +5187,12 @@ def randomize():
         for e in EncounterObject.every:
             e.randomize_weather()
 
-<<<<<<< HEAD
     try:
         randomize_overworld(TEMPFILE)
     except NotImplementedError:
         print "Warning: Overworld mod failed."
 
-    if 'z' in flags and 'f' in flags:
-=======
     if 'z' in flags and 'f' in flags:  # surprises + enemy & ally formations
->>>>>>> add a jp multiplier
         random.seed(seed)
         encs = EncounterObject.get_replaceable_maps()
         sampsize = len(encs) / 2
